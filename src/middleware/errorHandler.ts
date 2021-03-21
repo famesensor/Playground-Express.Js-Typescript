@@ -35,3 +35,5 @@ const errorHandler = (
         message: error.message || `Internal server error`
     });
 };
+
+export default errorHandler;

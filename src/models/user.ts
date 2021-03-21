@@ -1,8 +1,9 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import mongoose, { Schema, Document, Model, model } from 'mongoose';
+import { UserSignup } from '../interfaces/user';
 
-const UserSchema: Schema = new Schema<IUserSchema>({
+const UserSchema: Schema = new Schema({
     username: {
         type: String,
         required: [true, `Username is required`],
@@ -39,19 +40,8 @@ const UserSchema: Schema = new Schema<IUserSchema>({
     }
 });
 
-// based schema
-export interface IUserSchema extends Document {
-    username: string;
-    password: string;
-    email: string;
-    picture: string;
-    role: string;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
 // instance methods
-interface IUserModel extends IUserSchema {
+interface IUserModel extends UserSignup, Document {
     matchPassword(enteredPassword: string): Promise<boolean>;
     gravatar(size: number): string;
 }

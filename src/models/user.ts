@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import mongoose, { Schema, Document, Model, model } from 'mongoose';
+import jwt from 'jsonwebtoken';
 import { IUser } from '../interfaces/user';
 
 const UserSchema: Schema = new Schema({
@@ -44,6 +45,7 @@ const UserSchema: Schema = new Schema({
 interface IUserModel extends Document, IUser {
     matchPassword(enteredPassword: string): Promise<boolean>;
     gravatar(size: number): string;
+    getToken(): string;
 }
 
 UserSchema.pre<IUserModel>('save', async function save(next): Promise<void> {
@@ -66,6 +68,18 @@ UserSchema.methods.gravatar = function (size: number): string {
     if (!user.email) return `https://gravatar.com/avatar/?s=${size}&d=retro`;
     const md5 = crypto.createHash('md5').update(user.email).digest('hex');
     return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
+};
+
+UserSchema.methods.getToken = function () {
+    let user = <IUserModel>this;
+    let payload: object = {
+        username: user.username,
+        email: user.email,
+        picture: user.picture,
+        role: user.role
+    };
+
+    return jwt.sign(payload, process.env.SECRET_KEY!, { expiresIn: 3600 });
 };
 
 export const UserModel: Model<IUserModel> = model<IUserModel>(

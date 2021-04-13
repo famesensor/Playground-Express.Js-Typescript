@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import mongoose, { Schema, Document, Model, model } from 'mongoose';
-import { UserSignup } from '../interfaces/user';
+import { IUser } from '../interfaces/user';
 
 const UserSchema: Schema = new Schema({
     username: {
@@ -41,7 +41,7 @@ const UserSchema: Schema = new Schema({
 });
 
 // instance methods
-interface IUserModel extends UserSignup, Document {
+interface IUserModel extends Document, IUser {
     matchPassword(enteredPassword: string): Promise<boolean>;
     gravatar(size: number): string;
 }
@@ -57,12 +57,14 @@ UserSchema.pre<IUserModel>('save', async function save(next): Promise<void> {
 UserSchema.methods.matchPassword = async function (
     enteredPassword: string
 ): Promise<boolean> {
-    return await bcrypt.compare(enteredPassword, this.password);
+    let user = <IUserModel>this;
+    return await bcrypt.compare(enteredPassword, user.password);
 };
 
 UserSchema.methods.gravatar = function (size: number): string {
-    if (!this.email) return `https://gravatar.com/avatar/?s=${size}&d=retro`;
-    const md5 = crypto.createHash('md5').update(this.email).digest('hex');
+    let user = <IUserModel>this;
+    if (!user.email) return `https://gravatar.com/avatar/?s=${size}&d=retro`;
+    const md5 = crypto.createHash('md5').update(user.email).digest('hex');
     return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
 };
 
